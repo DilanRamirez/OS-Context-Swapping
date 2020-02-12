@@ -5,65 +5,95 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <sys/time.h>
+#include <string.h>
 
-double gettingTime(){
+//Function to start timer
+double startTime(){
 	clock_t start1 = clock();
-   	clock_t end1 = clock();
-
-   	clock_t start2 = clock();
-   	clock_t end2 = clock();
-
-   	double time_elapsed_in_seconds1 = (end1 - start1)/(double)CLOCKS_PER_SEC;
-   	double time_elapsed_in_seconds2 = (end2 - start2)/(double)CLOCKS_PER_SEC;
-
-   	//printf("time1: %lf\n", time_elapsed_in_seconds1);
-   	//printf("time2: %lf\n", time_elapsed_in_seconds2);
-
-   	double Subtract = time_elapsed_in_seconds1 - time_elapsed_in_seconds2;
-   	printf("Subtract: %lf\n", Subtract);
-
-   	return Subtract;
+   	return start1;
 }
 
-void fork_Function(){
-	int my_pipe[2], p;
-	pid_t cpid;
+//function to stop timer.
+double endTime(clock_t start1){
+   	clock_t end1 = clock();
 
-	pipe(my_pipe);
+   	double time_elapsed_in_seconds = (end1 - start1)/(double)CLOCKS_PER_SEC;
+   	printf("Total time: %0.12lf\n", time_elapsed_in_seconds);
+
+   	return time_elapsed_in_seconds;
+}
+
+
+/*In the Fork_Function() we will use two pipes to show how the process interrupts
+to send a string and concatenate it to another string getting the result RamirezDilan.
+By doing it, I will track the time between the communication of the parent process and the child process
+to estimate the time it takes to switch between processes. 
+*/
+double fork_Function(){
+	int my_pipe1[2], my_pipe2[2];
+	double start, end;
+	pid_t cpid, p;
+	char name[]="Dilan";
+	char lastname[] = "Ramirez";
+
+	printf("Input:%s\n", name);
+	//Chech both pipes in case they fail.
+	if(pipe(my_pipe1) == -1){
+		printf("Pipe1 Failed\n");
+	}
+	if(pipe(my_pipe2) == -1){
+		printf("Pipe2 Failed\n");
+	}
 	p = fork();
 
-	printf("Fork: %d\n\n", p);
-	if(p > 0){
-		close(my_pipe[0]);
-		write(my_pipe[1],"Some string from parent", 24);
-		//fflush(my_pipe[1]);
-		close(my_pipe[1]);
-		cpid = wait(NULL);
-		printf("Parent pid = %d\n", getpid()); 
-    	printf("Child pid = %d\n", cpid); 
-		printf("My_pipe if: %d\n", my_pipe[1]);
+	if(p<0){
+		printf("Fork Failed\n");
+	}
+	//Inside Parent Process
+	else if(p > 0){
+		char concat_str[100];
 
+		close(my_pipe1[0]); //close the reading end of first "my_pipe[0]""
+		write(my_pipe1[1],lastname, strlen(lastname)+1); //write the string of the first pipe"
+		close(my_pipe1[1]); //After the child process, parent will close the writing end of second pipe "my_pipe[1]"
+		
+		start = startTime();
+		cpid = wait(NULL);//Wait for child to respond.
+
+		close(my_pipe2[1]); //closing wite of the second pipe
+		read(my_pipe2[0], concat_str, 100); //Read string from child
+		printf("Concatenated string: %s\n", concat_str); 
+		close(my_pipe2[0]);
+		
+
+	//Inside Child Process
 	}else{ // child proces 
-		close (my_pipe[1]);
-		char input_str[100];
-		read(my_pipe[0], input_str, 100);
-		close(my_pipe[0]);
-		printf("My_pipe else: %d\n", my_pipe[0]);
+		close (my_pipe1[1]); //Child reads the first string sent by parent process by closing the writing end of my_pipe[1]
+		
+		// Read a string using first pipe
+		char concat_str[100];
+		read(my_pipe1[0], concat_str, 100); // concatenate both string and passes the string to parent process
+		
+		int length = strlen(concat_str);
+		for(int i=0; i<strlen(name);i++){
+			concat_str[length++] = name[i]; //Concatenate String "Ramirez"
+		}
+		concat_str[length] = '\0';
+		close(my_pipe1[0]);
+		close(my_pipe2[0]);
+
+		end = endTime(start);
+		write(my_pipe2[1], concat_str, strlen(concat_str)+1); // write string "Ramirez"
+		close(my_pipe2[1]); //close the pipe
+		
 		exit (0);
+		return end;
 	}	
 }
 
-int main(int arcg, char* argv[]){
-	double t, t2, avg2, avg, time1, time2, time3, time4, time5;
-	//fork_Function();
-	time1 = gettingTime();
-	time2 = gettingTime();
-	time3 = gettingTime();
-	time4 = gettingTime();
-	time5 = gettingTime();
-
-	avg = (time1 + time2 + time3 + time4 + time5)/5;
-	printf("Avg: %lf\n", avg);
+int main(int arcg, char* argv[]){	
+	fork_Function();
+	
 
 	/*
 	printf("----------FOR LOOP----------\n");
@@ -77,6 +107,8 @@ int main(int arcg, char* argv[]){
 
 	printf("Avg2: %lf\n", avg2);
 	*/
+
+	
 
 	return 0;
 }
