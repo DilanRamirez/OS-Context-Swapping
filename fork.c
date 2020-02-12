@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -6,6 +7,9 @@
 #include <time.h>
 #include <sys/time.h>
 #include <string.h>
+#include <assert.h>
+#include <sched.h>
+#include <stdbool.h>
 
 //Function to start timer
 double startTime(){
@@ -23,6 +27,39 @@ double endTime(clock_t start1){
    	return time_elapsed_in_seconds;
 }
 
+//Funtion to show the number of cores are running once the code is execute.
+void printCPUs(){
+	cpu_set_t mask;
+    long nproc, i;
+
+    // the function fails for some other reason, it returns -1 
+    if (sched_getaffinity(0, sizeof(cpu_set_t), &mask) == -1) {
+        printf("sched_getaffinity Failed");
+    }
+    printf("\n");
+	nproc = sysconf(_SC_NPROCESSORS_ONLN); //get number of cores
+    printf("Number of cores enable: ");
+    for (i = 0; i < nproc; i++) {
+        printf("%d ", CPU_ISSET(i, &mask)); //print cores enabled.
+    }
+    printf("\n");
+    printf("Process running on core: %d\n", sched_getcpu()); //prints the core the process is running.
+}
+
+/*Funtion to set all the processes to run in the same core
+to ensure that my context-switching processes are located
+on the same processor*/
+void setOneCPU(){
+	cpu_set_t mask;
+	
+	printf("\n-----Setting only one CPU-----");
+	CPU_ZERO(&mask); // initializes the CPU set set to be the empty set(no CPU selected).
+    CPU_SET(0, &mask); //set the process to run on core 0.
+     if (sched_setaffinity(0, sizeof(cpu_set_t), &mask) == -1){ 
+        perror("sched_setaffinity");
+        assert(false);
+    }
+}
 
 /*In the Fork_Function() we will use two pipes to show how the process interrupts
 to send a string and concatenate it to another string getting the result RamirezDilan.
@@ -36,6 +73,7 @@ double fork_Function(){
 	char name[]="Dilan";
 	char lastname[] = "Ramirez";
 
+	printf("\n------Going through processes----\n");
 	printf("Input:%s\n", name);
 	//Chech both pipes in case they fail.
 	if(pipe(my_pipe1) == -1){
@@ -92,7 +130,12 @@ double fork_Function(){
 }
 
 int main(int arcg, char* argv[]){	
+	printf("\n-----Display CPU Information-----");
+	printCPUs();
+	setOneCPU();
+	printCPUs();
 	fork_Function();
+	printf("\n");
 	
 
 	/*
