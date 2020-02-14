@@ -6,7 +6,7 @@ The main purpose of Lab 1 – Context Swapping is to measure the cost, in this c
 
 ## Instructions
 
-The folder contains 5 files. The Makefile includes only the file read_input.c and write_input.c to execute.
+The folder contains seven files. The Makefile includes only the file read_input.c and write_input.c to execute.
 File Lab1_DilanRamirez.c contains the context swapping demostration in which measures the time it takes to OS
 to swap process.
 
