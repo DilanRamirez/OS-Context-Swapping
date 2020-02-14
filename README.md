@@ -1,5 +1,4 @@
-# Foobar
-Lab 1 - Context Swapping (CS 4375 - OS)
+# Lab 1 - Context Swapping (CS 4375 - OS)
 
 ## Description
 
