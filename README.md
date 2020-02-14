@@ -10,7 +10,7 @@ The folder contains 5 files. The Makefile includes only the file read_input.c an
 File Lab1_DilanRamirez.c contains the context swapping demostration in which measures the time it takes to OS
 to swap process.
 
-##Authors
+## Author
 
 Dilan Ramirez
 
