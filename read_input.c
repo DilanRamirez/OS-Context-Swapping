@@ -1,9 +1,9 @@
 #include <stdio.h>
+#include "write_input.h"
 
 char *read_input(char input[50]){
 	printf("Enter a String: ");
 	gets(input);
-
 	return input;
 }
 
