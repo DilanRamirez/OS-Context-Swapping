@@ -1,0 +1,6 @@
+Grade: 83
+
+Reason: 
+	- No hypothesis in intro
+	- More times could have been taken (or a precision measurement of your timing method should have been taken
+	- Discussion does not include results or any of the calculations 
